@@ -9,9 +9,13 @@
 (setf *goal-state* '(	1 2 3
 						4 5 6
 						7 8 -))
-(setf *initial-state* '(1 2 3
-						4 5 6
-						8 7 - ))
+;(print "Enter initial-state")
+;;;for manual input of initial state, use below 
+;(setf *initial-state* (list (read)(read)(read)(read)(read)(read)(read)(read)(read)))
+
+(setf *initial-state* '(4 1 2
+						7 5 3
+						8 - 6 ))
 (defstruct problem
 	(initial-node)
 	(goal-test)
@@ -186,6 +190,8 @@
 							(progn
 								(format t "-")
 								(decf temp)))
+				(if (= (length visited) 181440)
+					(error "Sorry! State space exhausted, No Solution"))
 				(terpri)
 ;					(p node);---------------
 				(terpri)
