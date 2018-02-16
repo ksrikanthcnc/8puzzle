@@ -1,31 +1,21 @@
-;(format t "Enter initial-state~%")
-;(setf *initial-state* (list (read)(read)(read)(read)(read)(read)(read)(read)(read)))
-;(format t "Enter goal-state~%")
-;(setf *goal-state* (list (read)(read)(read)(read)(read)(read)(read)(read)(read)))
 #||
-(format t "Enter initial-state~%")
-(setf *initial-state* (list (read)(read)(read)(read)(read)(read)(read)(read)(read)))
 (setf *goal-state* '(	1 2 3
 						8 - 4
 						7 6 5))
-;||#
-
-#||
 (setf *initial-state* '(1 2 3
 						4 5 6
 						- 8 7 ))
+||#
 (setf *goal-state* '(	1 2 3
-						8 - 4
-						7 6 5))
-;||#
-;#||
-(setf *initial-state* '(	1 2 3
-							4 5 6
-							8 7 -))
-(setf *goal-state* '(	1 2 3
-						8 - 4
-						7 6 5))
-;||#
+						4 5 6
+						7 8 -))
+;(print "Enter initial-state")
+;;;for manual input of initial state, use below 
+;(setf *initial-state* (list (read)(read)(read)(read)(read)(read)(read)(read)(read)))
+
+(setf *initial-state* '(4 1 2
+						7 5 3
+						8 - 6 ))
 (defstruct problem
 	(initial-node)
 	(goal-test)
@@ -51,9 +41,8 @@
 	(setq dist (+ 	(node-goal-dist node)
 					(node-travel-dist node)))
 	(return-from goal-dist (node-goal-dist node)))
-;#||
+
 (defun 8puzz-goal-dist (state &aux (dist 0) (correct-tile 1))
-	"Number of mis-placed tiles"
 	;(print "Finding goal-dist")
 	(loop for tile in state
 		do
@@ -63,31 +52,6 @@
 				(incf correct-tile)))
 	;(print "Found Goal-dist")
 	dist)
-;||#
-
-(defun index (element state &optional (pos 1))
-	;(print "Fetching index")
-	(if (null state)
-		(error "Error in index~%"))
-	(if (eq element (car state))
-		pos
-		(index element (cdr state) (incf pos))))
-
-#||
-(defun 8puzz-goal-dist (state &aux (dist 0) (correct-tile 1))
-	"Distance to correct tile"
-	;(print "Finding goal-dist")
-	(setq dist 0)
-	(loop for tile in state
-		do
-			(progn
-				(if (not (eq tile '-))
-					(setf dist (+ 	dist
-									(abs (- (index tile state)
-											(index tile *goal-state*))))))))
-	;(print "Found Goal-dist")
-	dist)
-;||#
 
 (defun 8puzz-goal-test (state)
 	(equal state *goal-state*))
@@ -226,6 +190,8 @@
 							(progn
 								(format t "-")
 								(decf temp)))
+				(if (= (length visited) 181440)
+					(error "Sorry! State space exhausted, No Solution"))
 				(terpri)
 ;					(p node);---------------
 				(terpri)
@@ -255,9 +221,6 @@
 
 (defun DFS-queue (nodes new-nodes)
 	;(print "DFS-Q")
-	(if (null nodes)
-		(progn
-			(return-from DFS-queue new-nodes)))
 	(nconc new-nodes nodes))
 
 (defun BFS-queue (nodes new-nodes)
@@ -324,6 +287,14 @@
 				(cons (car nodes) (insert-node-ordered new (cdr nodes))))))
 
 
+(defun index (element state &optional (pos 1))
+	;(print "Fetching index")
+	(if (null state)
+		(error "Error in index~%"))
+	(if (eq element (car state))
+		pos
+		(index element (cdr state) (incf pos))))
+	
 (defun swap-tiles (state pos1 pos2 &aux temp state2)
 	;(print "Swapping tiles")
 	(setf state2 (copy-tree state))
@@ -334,7 +305,6 @@
 	(setf (nth pos2 state2) temp)
 	state2)
 
-(setf *states* 0)
 
 (defun answer (node)
 	(print "answer")
@@ -342,7 +312,6 @@
 	(terpri)
 ;	(print node)
 	(par (node-parent node))
-	(format t "Number of nodes travelled from start-state to goal-state:~a~%" *states*)
 	(print "Goal-state")
 	(terpri)
 	(p node))
@@ -356,7 +325,6 @@
 			;(terpri)
 			(return-from par)))
 	(par (cdr par-node-list))
-	(incf *states*)
 	(print-state (car par-node-list))
 	(terpri)
 	)
