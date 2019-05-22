@@ -10,10 +10,10 @@
 						7 6 5))
 ;||#
 
-;#||
+#||
 (setf *initial-state* '(1 2 3
-						5 4 6
-						- 7 8 ))
+						4 5 6
+						- 8 7 ))
 (setf *goal-state* '(	1 2 3
 						8 - 4
 						7 6 5))
@@ -26,6 +26,13 @@
 						8 - 4
 						7 6 5))
 ;||#
+(setf *initial-state* '(	1 2 3
+							4 6 5
+							7 8 -))
+(setf *goal-state* '(	1 2 3
+						8 - 4
+						7 6 5))
+
 (defstruct problem
 	(initial-node)
 	(goal-test)
@@ -41,17 +48,18 @@
 (defun travel-dist (node)
 	;(print "Travel-dist");
 	;(print node)
-	(setq dist (+ 	(node-goal-dist node)
-					(node-travel-dist node)))
 	(return-from travel-dist (node-travel-dist node)))
 
 (defun goal-dist (node)
 	;(print "Goal-dist");
 	;(print node)
-	(setq dist (+ 	(node-goal-dist node)
-					(node-travel-dist node)))
 	(return-from goal-dist (node-goal-dist node)))
-;#||
+
+(defun dist (node)
+	;(print "Travel-dist");
+	;(print node)
+	(return-from dist (node-dist node)))
+#||
 (defun 8puzz-goal-dist (state &aux (dist 0) (correct-tile 1))
 	"Number of mis-placed tiles"
 	;(print "Finding goal-dist")
@@ -73,7 +81,7 @@
 		pos
 		(index element (cdr state) (incf pos))))
 
-#||
+;#||
 (defun 8puzz-goal-dist (state &aux (dist 0) (correct-tile 1))
 	"Distance to correct tile"
 	;(print "Finding goal-dist")
@@ -101,6 +109,8 @@
 			(setf new (make-node 	:state state
 									:parent (cons (node-state node) (node-parent node))
 									:travel-dist (+ (node-travel-dist node) 1)
+									:dist (+ 	(node-dist node)
+												(+	(8puzz-goal-dist state) 1))
 									:goal-dist (8puzz-goal-dist state)))
 			;(print "Moved tile right")
 			new)))
@@ -114,6 +124,8 @@
 			(setf new (make-node 	:state state
 									:parent (cons (node-state node) (node-parent node))
 									:travel-dist (+ (node-travel-dist node) 1)
+									:dist (+ 	(node-dist node)
+												(+	(8puzz-goal-dist state) 1))
 									:goal-dist (8puzz-goal-dist state)))
 			;(print "Moved tile up")
 			new)))
@@ -127,6 +139,8 @@
 			(setf new (make-node 	:state state
 									:parent (cons (node-state node) (node-parent node))
 									:travel-dist (+ (node-travel-dist node) 1)
+									:dist (+ 	(node-dist node)
+												(+	(8puzz-goal-dist state) 1))
 									:goal-dist (8puzz-goal-dist state)))
 			;(print "Moved tile down")
 			new)))
@@ -140,6 +154,8 @@
 			(setf new (make-node 	:state state
 									:parent (cons (node-state node) (node-parent node))
 									:travel-dist (+ (node-travel-dist node) 1)
+									:dist (+ 	(node-dist node)
+												(+	(8puzz-goal-dist state) 1))
 									:goal-dist (8puzz-goal-dist state)))
 			;(print "Moved tile left")
 			new)))
@@ -151,6 +167,7 @@
 		:initial-node (make-node	:state	*initial-state*
 									:parent	(list *initial-state*)
 									:travel-dist 0
+									:dist (8puzz-goal-dist *initial-state*)
 									:goal-dist (8puzz-goal-dist *initial-state*))
 		:goal-test #'8puzz-goal-test
 		:operators (list #'move-blank-up #'move-blank-down #'move-blank-left #'move-blank-right)))
@@ -184,7 +201,7 @@
 			(if (null node)
 				(progn
 					(setf node (cadr nodes))
-					(setf nodes (cddr nodes)))
+					(setf nodes (cdr nodes)))
 				(setf nodes (cdr nodes)))
 ;			(setq node null)
 			(loop 
@@ -192,9 +209,8 @@
 					do	(if (null node)
 							(progn
 								(setf node (cadr nodes))
-								(setf nodes (cddr nodes)))
+								(setf nodes (cdr nodes)))
 							(setf nodes (cdr nodes))))
-							
 			(when 	(not (member (node-state node) visited :test #'equal))
 				(format t "Testing (~s nodes visited, ~s nodes open)~%~a ~a ~a ~%~a ~a ~a ~%~a ~a ~a ~%Distance from Goal:~a~%Depth travelled so far:~a~%h(n):~a~%"
 					(length visited) (length nodes) 
@@ -209,8 +225,9 @@
 					(nth 8 (node-state node))
 					(node-goal-dist node)
 					(node-travel-dist node)
-					(+	(node-goal-dist node)
-						(node-travel-dist node)))
+;					(+	(node-goal-dist node)
+;						(node-travel-dist node)))
+					(node-dist node))
 				(setq temp (node-travel-dist node))
 				(loop
 					while 	(> temp 0)
@@ -219,8 +236,7 @@
 								(format t ".")
 								(decf temp)))
 				(terpri)
-				(setq temp (+	(node-goal-dist node)
-								(node-travel-dist node)))
+				(setq temp (node-dist node))
 				(loop
 					while 	(> temp 0)
 					do
@@ -241,7 +257,7 @@
 					(push (node-state node) visited)
 					(setf 	nodes
 							(funcall algo	nodes
-											(Expand node;secondargument
+											(Expand node
 													(problem-operators problem)
 													visited)))
 					;(print "Exiting...")
@@ -253,22 +269,20 @@
 	(remove-if #'(lambda(n) (member n visited :test #'equal))
 		(progn
 			(apply #'nconc (list (mapcar #'(lambda (op) (funcall op node)) operators))))))
-			
-			;expand. 
 
 (defun DFS-queue (nodes new-nodes)
 	;(print "DFS-Q")
 	(if (null nodes)
 		(progn
 			(return-from DFS-queue new-nodes)))
-	(nconc new-nodes nodes));stack
+	(nconc new-nodes nodes))
 
 (defun BFS-queue (nodes new-nodes)
 	;(print "BFS-Q")
 	(if (null nodes)
 		(progn
 			(return-from BFS-queue new-nodes)))
-	(nconc nodes new-nodes));queue
+	(nconc nodes new-nodes))
 
 (defun A*-queue (nodes new-nodes)
 	;(print "A*-Q")
@@ -318,10 +332,14 @@
 	(setf nod (car nodes))
 	(cond	(	(null nodes)
 				(list new))
-			((< (+ 	(travel-dist new)
+#||			((< (+ 	(travel-dist new)
 					(goal-dist new))
 				(+ 	(travel-dist nod)
 					(goal-dist nod)))
+				(cons new nodes))
+||#
+			((< (dist new)
+				(dist nod))
 				(cons new nodes))
 			(t
 				(cons (car nodes) (insert-node-ordered new (cdr nodes))))))
@@ -371,28 +389,3 @@
 ;		(test8-dfs)
 		(test8-a*)
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

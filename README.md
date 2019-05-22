@@ -1,9 +1,15 @@
-8puzzle
+# 8 Puzzle Solver
 
-to run
+Solves 8-Puzzle problem using BFS, DFS and A* algorithms
 
-clisp 8puzzle.lisp
-
-functions are called at the bottom of the file
-comment un-used functions with a semi-colon ';'
-and uncomment the functions you want to use...
+## Instructions
+By Default
+Initial state is
+    1 2 3
+    4 5 6
+    - 8 7
+Goal State is
+    1 2 3
+    8 - 4
+    7 6 5
+Default algorithm used is **A\*(A-Star)**
